@@ -1,0 +1,239 @@
+/*
+ *
+ * Essentials *ALPHA*
+ * Version - A0.0.1
+ *
+ *
+ * --------------------------------------------------------
+ * Developed by:
+ * - bartselen (Main Developer, Project Founder And Leader)
+ *
+ * ~Founded 11/5/2014~
+ *
+ */
+//
+function On_Command(Player, cmd, args) {
+    switch (cmd) {
+		case "help":
+			Player.MessageFrom("Essentials", "Help");
+			Player.MessageFrom("Essentials", "Help - Page 1");
+			Player.MessageFrom("Essentials", "/msg (username) (message) - send a private message to a player");
+			Player.MessageFrom("Essentials", "/time |set (time)| - show or set the current time");
+			Player.MessageFrom("Essentials", "/airdrop |(username)| - call an airdrop to a random location or a specific player");
+			Player.MessageFrom("Essentials", "/recover |(username)| - recover yourself or a player from all activedebuffs");
+			Player.MessageFrom("Essentials", "/punish bleed|injury|kill (username) - punish those naughty rule-breaking players");
+			Player.MessageFrom("Essentials", "/kick (username) - kick a player from the server");
+			Player.MessageFrom("Essentials", "Help - Page 1");
+			Player.MessageFrom("Essentials", "Help - Page 1");
+			break;
+			
+		case "msg":
+			if (args.Length > 1) {
+				messagePlayerByArgs(Player, args)
+			} else {
+				Player.Message("Valid Syntax: /msg (Player) (Message)");
+			}
+			break;
+			
+		case "time":
+			if (args.Length == 0) {
+				Player.Message("The current world time is: " + World.Time);
+			}
+			if (args.Length == 2) {
+				if (args[0] == "set") {
+					if (esIsValidAndInRangeNumber(args[1], 0, 12)) {
+						World.Time = args[1]
+						Player.Message("Set the world time to " + args[1]);
+					} else {
+						Player.Message("Invalid number specified");
+					}
+				}
+			}
+			break;
+			
+		case "airdrop":
+			if (args.Length == 0) {
+				World.Airdrop();
+				Player.Message("An airdrop is now being randomly dropped.");
+			} else if (args.Length > 0) {
+				try {
+					var targetPlayer = Magma.Player.FindByName(argsToText(args));
+					World.AirdropAtPlayer(targetPlayer);
+					Player.Message("Airdrop sent to player " + targetPlayer.Name);
+				} catch (err) {
+					if (targetPlayer == undefined) {
+						Player.Message("Target player not found");
+					}
+				}
+			}
+			break;
+			
+		case "recover":
+			if (args.Length == 0) {
+				Player.IsInjured = false;
+				Player.IsBleeding = false;
+			} else if (args.Length == 1) {
+				var targetPlayer = Magma.Player.FindByName(argsToText(args));
+				targetPlayer.IsInjured = false;
+				targetPlayer.IsBleeding = false;
+			}
+			break;
+			
+		case "punish":
+			if (args.Length >= 2) {
+				var targetPlayer = Magma.Player.FindByName(esPunishArgsToText(args));
+				switch (args[0]) {
+					case "bleed":
+						targetPlayer.IsBleeding = true;
+						targetPlayer.Message("You have been punished!");
+						break;
+					case "injury":
+						targetPlayer.IsInjured = true;
+						targetPlayer.Message("You have been punished!");
+						break;
+					case "kill":
+						targetPlayer.Kill();
+						targetPlayer.Message("You have been punished!");
+						break;
+				}
+			}
+			break;
+			
+		case "kick":
+			if (args.Length >= 1) {
+				var targetPlayer = Magma.Player.FindByName(argsToText(args));
+				kickPlayer(targetPlayer);
+			}
+			
+		case "location":
+			Player.Message("You are currently at X: " + Player.X + " Y: " + Player.Y + " Z: " + Player.Z);
+			break;
+		
+		case "players":
+			showOnline(Player);
+			break;
+		
+		case "list":
+			showOnline(Player);
+			break;
+		
+		case "who":
+			showOnline(Player);
+			break;
+			
+		case "tp":
+			try {
+				var targetPlayer = Magma.Player.FindByName(argsToText(args));
+				tpToPlayer(Player, targetPlayer);
+			catch (err) {
+				if (targetPlayer == undefined) {
+					Player.Message("Player not found");
+				}
+			}
+	}
+}
+
+//Hooked Functions
+function On_PlayerConnected(Player) {
+	Player.Message("Welcome, " + Player.Name + "!";
+	showPlayers();
+}
+function On_PlayerKilled(DeathEvent) {
+	announceDeath(DeathEvent);
+}
+
+
+//Custom Functions
+function tpToPlayer(Player, targetPlayer) {
+	Player.TeleportTo(targetPlayer);
+}
+function showMOTD() {
+
+}
+function showOnline(Player) {
+	var onlinePlayers = "";
+	for (player in Server.Players) {
+		if (player != Server.Players[Server.Players.Length - 1]) {
+			onlinePlayers += player.Name + ", ";
+		} else if (player == Server.Players[Server.Players.Length - 1]) {
+			onlinePlayers += player.Name;
+		}
+	var numOfOnlinePlayers = Server.Players.Length;
+	Player.Message("There are " + numOfOnlinePlayers + " online:");
+	Player.Message(onlinePlayers);
+}
+function kickPlayer(targetPlayer) {
+	targetPlayer.Disconnect();
+}
+
+function messagePlayer(sender, msg) {
+    try {
+        var targetPlayer = Magma.Player.FindByName(args[0]);
+        var msg = esMsgArgsToText(args);
+        targetPlayer.Message("[color #F8D03B][[color #E11A1A] " + sender.Name + "[color #FFFFFF] -> [color #F9D03B]You][color #FFFFFF]: " + msg);
+    } catch (err) {
+        if (targetPlayer == undefined) {
+            sender.Message("Could not find player");
+        }
+        if (msg == undefined) {
+            sender.Message("Valid Syntax: /msg (Player) (Message)");
+        } else {
+            sender.Message("Valid Syntax: /msg (Player) (Message)");
+        }
+    }
+}
+
+function messagePlayerByArgs(sender, args) {
+    try {
+        var targetPlayer = Magma.Player.FindByName(args[0]);
+        var msg = esMsgArgsToText(args);
+        targetPlayer.Message("[color #F8D03B][[/color][color #E11A1A] " + sender.Name + "[/color][color #FFFFFF] ->[/color] [color #F9D03B]You][/color][color #FFFFFF]:[/color] " + msg);
+    } catch (err) {
+        if (targetPlayer == undefined) {
+            sender.Message("Could not find player");
+        }
+        if (msg == undefined) {
+            sender.Message("Valid Syntax: /msg (Player) (Message)");
+        } else {
+            sender.Message("Valid Syntax: /msg (Player) (Message)");
+        }
+    }
+}
+
+/*DO NOT USE messagePlayerByName FOR THE MOMENT*/
+function messagePlayerByName(sender, targetPlayerName, msg) {
+    try {
+        var targetPlayer = Magma.Player.FindByName(targetPlayerName);
+        var msg = esMsgArgsToText(args);
+        targetPlayer.Message("[" + sender.Name + " -> You]: " + msg);
+    } catch (err) {
+        if (targetPlayer == undefined) {
+            sender.Message("Could not find player");
+        }
+        if (msg == undefined) {
+            sender.Message("Valid Syntax: /msg (Player) (Message)");
+        } else {
+            sender.Message("Valid Syntax: /msg (Player) (Message)");
+        }
+    }
+}
+
+//Death Messages
+function announceDeath(DeathEvent) {
+	Server.Broadcast(DeathEvent.Victim.Name + " has died");
+}
+function argsToText(args) {
+    var text = "";
+    if (args.Length == 1) {
+        text = args[0];
+    } else {
+        for (var l = 0; l < args.Length; l++) {
+            if (l == args.Length - 1) {
+                text += args[l];
+            } else {
+                text += args[l] + " ";
+            }
+        }
+    }
+    return text;
+}
