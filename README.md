@@ -8,15 +8,11 @@ Development Team:
 ----------------
 
 bartselen - Lead Developer, Project Leader and Founder
--
 
 balu92 - Developer
--
 
 DreTaX - Developer
--
 
 Skippi - Developer
--
 
 Five - Helper, Occasional Developer
